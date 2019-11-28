@@ -1,0 +1,8 @@
+vendor/
+*.ini
+*.sqlite3
+*.tmp
+*.swp
+*.bak
+*~
+.idea/
