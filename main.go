@@ -147,7 +147,7 @@ func (bot *Bot) sweepMessages() {
 	log.WithField("Cutoff", cutoff).Info("Sweeping messages")
 
 	tx := bot.db.Begin()
-	query := bot.db
+	query := tx
 	if bot.dbDriver != "sqlite3" {
 		query = query.Set("gorm:query_option", "FOR UPDATE")
 	}
