@@ -144,7 +144,14 @@ func (bot *Bot) sweepMessages() {
 		err := bot.tg.Delete(&msg)
 		if err != nil {
 			mLog.WithError(err).Printf("Failed to delete message")
-			if !strings.HasSuffix(err.Error(), "message can't be deleted") {
+			isOK := false
+			for _, okSuffix := range []string{"message can't be deleted", "message to delete not found"} {
+				if strings.HasSuffix(err.Error(), okSuffix) {
+					isOK = true
+					break
+				}
+			}
+			if !isOK {
 				continue
 			}
 		}
