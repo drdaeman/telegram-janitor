@@ -35,6 +35,7 @@ func (msg *Message) MessageSig() (messageID string, chatID int64) {
 type Bot struct {
 	tg            *tb.Bot
 	db            *gorm.DB
+	dbDriver      string
 	MessageTTL    time.Duration
 	SweepInterval time.Duration
 }
@@ -72,7 +73,8 @@ func NewBot(cfg *config.Config) (*Bot, error) {
 		return nil, err
 	}
 
-	bot.db, err = gorm.Open(dbURL.Driver, dbURL.DSN)
+	bot.dbDriver = dbURL.Driver
+	bot.db, err = gorm.Open(bot.dbDriver, dbURL.DSN)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,9 +133,11 @@ func (bot *Bot) sweepMessages() {
 	log.WithField("Cutoff", cutoff).Info("Sweeping messages")
 
 	tx := bot.db.Begin()
-	bot.db. //Set("gorm:query_option", "FOR UPDATE").
-		Where("time < ? AND NOT deleted", cutoff).
-		Find(&messages)
+	query := bot.db
+	if bot.dbDriver != "sqlite" {
+		query = query.Set("gorm:query_option", "FOR UPDATE")
+	}
+	query.Where("time < ? AND NOT deleted", cutoff).Find(&messages)
 	for _, msg := range messages {
 		mLog := log.WithFields(log.Fields{
 			"Type":   msg.Type,
