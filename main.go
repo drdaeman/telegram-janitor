@@ -16,6 +16,15 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
+func hasAnySuffix(s string, suffixes []string) bool {
+	for _, suffix := range suffixes {
+		if strings.HasSuffix(s, suffix) {
+			return true
+		}
+	}
+	return false
+}
+
 // Message is a GORM model struct that contains Telegram message IDs.
 type Message struct {
 	ID        uint `gorm:"primary_key"`
@@ -148,14 +157,11 @@ func (bot *Bot) sweepMessages() {
 		err := bot.tg.Delete(&msg)
 		if err != nil {
 			mLog.WithError(err).Printf("Failed to delete message")
-			isOK := false
-			for _, okSuffix := range []string{"message can't be deleted", "message to delete not found"} {
-				if strings.HasSuffix(err.Error(), okSuffix) {
-					isOK = true
-					break
-				}
+			okSuffixes := []string{
+				"message can't be deleted",
+				"message to delete not found",
 			}
-			if !isOK {
+			if !hasAnySuffix(err.Error(), okSuffixes) {
 				continue
 			}
 		}
