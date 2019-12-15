@@ -143,7 +143,7 @@ func (bot *Bot) sweepMessages() {
 
 	tx := bot.db.Begin()
 	query := bot.db
-	if bot.dbDriver != "sqlite" {
+	if bot.dbDriver != "sqlite3" {
 		query = query.Set("gorm:query_option", "FOR UPDATE")
 	}
 	query.Where("time < ? AND NOT deleted", cutoff).Find(&messages)
