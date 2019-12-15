@@ -105,14 +105,16 @@ func NewBot(cfg *config.Config) (*Bot, error) {
 	}
 
 	bot.tg.Handle(tb.OnText, bot.registrar("text"))
-	bot.tg.Handle(tb.OnSticker, bot.registrar("sticker"))
 	bot.tg.Handle(tb.OnPhoto, bot.registrar("photo"))
-	bot.tg.Handle(tb.OnVideo, bot.registrar("video"))
 	bot.tg.Handle(tb.OnAudio, bot.registrar("audio"))
-	bot.tg.Handle(tb.OnVoice, bot.registrar("voice"))
 	bot.tg.Handle(tb.OnDocument, bot.registrar("document"))
-	bot.tg.Handle(tb.OnLocation, bot.registrar("location"))
+	bot.tg.Handle(tb.OnSticker, bot.registrar("sticker"))
+	bot.tg.Handle(tb.OnVideo, bot.registrar("video"))
+	bot.tg.Handle(tb.OnVoice, bot.registrar("voice"))
+	bot.tg.Handle(tb.OnVideoNote, bot.registrar("video_note"))
 	bot.tg.Handle(tb.OnContact, bot.registrar("contact"))
+	bot.tg.Handle(tb.OnLocation, bot.registrar("location"))
+	bot.tg.Handle(tb.OnVenue, bot.registrar("venue"))
 	return bot, nil
 }
 
