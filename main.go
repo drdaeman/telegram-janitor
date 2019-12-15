@@ -16,6 +16,8 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 )
 
+var release string
+
 func hasAnySuffix(s string, suffixes []string) bool {
 	for _, suffix := range suffixes {
 		if strings.HasSuffix(s, suffix) {
@@ -122,7 +124,10 @@ func (bot *Bot) registrar(messageType string) func(m *tb.Message) {
 
 // Start runs the bot.
 func (bot *Bot) Start() {
-	log.Info("Started")
+	if release == "" {
+		release = "unknown"
+	}
+	log.WithField("Release", release).Info("Started")
 	go bot.startSweeper()
 	bot.tg.Start()
 }

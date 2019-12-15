@@ -3,7 +3,8 @@ WORKDIR $GOPATH/src/github.com/drdaeman/expiring-telegram
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -ldflags "-s -w -linkmode external -extldflags '-fno-PIC -static'" -o /go/bin/janitor .
+ARG RELEASE
+RUN go build -ldflags "-s -w -linkmode external -extldflags '-fno-PIC -static' -X 'main.release=$RELEASE'" -o /go/bin/janitor .
 RUN mkdir /tmp/empty \
  && touch /tmp/empty/.keep \
  && chown -R nobody:nogroup /tmp/empty \
