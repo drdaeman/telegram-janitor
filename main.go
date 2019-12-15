@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -143,7 +144,9 @@ func (bot *Bot) sweepMessages() {
 		err := bot.tg.Delete(&msg)
 		if err != nil {
 			mLog.WithError(err).Printf("Failed to delete message")
-			continue
+			if !strings.HasSuffix(err.Error(), "message can't be deleted") {
+				continue
+			}
 		}
 		msg.Deleted = true
 		tx.Save(&msg)
