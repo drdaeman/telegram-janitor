@@ -7,6 +7,7 @@ require (
 	github.com/codegangsta/cli v1.20.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.37.0
+	github.com/hako/durafmt v0.0.0-20191009132224-3f39dc1ed9f4
 	github.com/jinzhu/gorm v1.9.1
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a
 	github.com/lib/pq v1.2.0

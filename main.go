@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hako/durafmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -47,6 +49,7 @@ type Bot struct {
 	tg            *tb.Bot
 	db            *gorm.DB
 	dbDriver      string
+	startTime     time.Time
 	MessageTTL    time.Duration
 	SweepInterval time.Duration
 }
@@ -84,6 +87,8 @@ func NewBot(cfg *config.Config) (*Bot, error) {
 		return nil, err
 	}
 
+	bot.startTime = time.Now()
+
 	bot.dbDriver = dbURL.Driver
 	bot.db, err = gorm.Open(bot.dbDriver, dbURL.DSN)
 	if err != nil {
@@ -104,6 +109,9 @@ func NewBot(cfg *config.Config) (*Bot, error) {
 		return nil, err
 	}
 
+	bot.tg.Handle("/start", bot.onStartCommand)
+	bot.tg.Handle("/stats", bot.onStatsCommand)
+
 	bot.tg.Handle(tb.OnText, bot.registrar("text"))
 	bot.tg.Handle(tb.OnPhoto, bot.registrar("photo"))
 	bot.tg.Handle(tb.OnAudio, bot.registrar("audio"))
@@ -122,6 +130,53 @@ func (bot *Bot) registrar(messageType string) func(m *tb.Message) {
 	return func(m *tb.Message) {
 		bot.registerMessage(messageType, m)
 	}
+}
+
+func (bot *Bot) onStartCommand(m *tb.Message) {
+	if !m.Private() {
+		return
+	}
+	_, _ = bot.tg.Send(
+		m.Sender,
+		fmt.Sprintf(
+			"This is a group janitor bot, release `%s`",
+			release,
+		),
+		&tb.SendOptions{
+			ParseMode: tb.ModeMarkdown,
+		},
+	)
+}
+
+func (bot *Bot) onStatsCommand(m *tb.Message) {
+	if !m.Private() {
+		return
+	}
+
+	var totalMessages int
+	var totalChats int
+	tx := bot.db.Begin()
+	tx.Model(&Message{}).
+		Where("NOT deleted").
+		Select("COUNT(DISTINCT id)").
+		Count(&totalMessages)
+	tx.Model(&Message{}).
+		Where("NOT deleted").
+		Select("COUNT(DISTINCT chat_id)").
+		Count(&totalChats)
+	tx.Commit()
+
+	uptime := durafmt.Parse(time.Now().Sub(bot.startTime)).LimitFirstN(2).String()
+
+	_, _ = bot.tg.Send(
+		m.Sender,
+		fmt.Sprintf(
+			"Up for %s. Currently tracking %d messages from %d chats.",
+			uptime,
+			totalMessages,
+			totalChats,
+		),
+	)
 }
 
 // Start runs the bot.
